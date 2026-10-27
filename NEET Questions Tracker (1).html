@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NEET Question Bank Tracker - 27,691 Questions</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            -webkit-tap-highlight-color: transparent;
+        }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Smooth transitions */
+        .card-expand {
+            transition: max-height 0.3s ease-in-out, opacity 0.2s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col pb-20 sm:pb-6 selection:bg-indigo-500 selection:text-white">
+
+    <!-- Header Navigation -->
+    <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-40 border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-indigo-600 rounded-xl shadow-md shadow-indigo-500/20">
+                    <i data-lucide="book-open-check" class="w-5 h-5 sm:w-6 sm:h-6 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-bold tracking-tight text-slate-100 flex items-center gap-2">
+                        NEET Prep Tracker
+                        <span class="text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full">v2.0 Mobile</span>
+                    </h1>
+                    <p class="text-[11px] text-slate-400 font-medium">27,691 Target Questions</p>
+                </div>
+            </div>
+
+            <!-- Desktop Action Buttons -->
+            <div class="hidden sm:flex items-center space-x-2">
+                <button onclick="exportData()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-xs font-semibold rounded-lg transition flex items-center gap-1.5 text-slate-200 border border-slate-700">
+                    <i data-lucide="download" class="w-3.5 h-3.5 text-indigo-400"></i> Export
+                </button>
+                <label class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-xs font-semibold rounded-lg transition flex items-center gap-1.5 text-slate-200 border border-slate-700 cursor-pointer">
+                    <i data-lucide="upload" class="w-3.5 h-3.5 text-indigo-400"></i> Import
+                    <input type="file" id="importFile" onchange="importData(event)" class="hidden" accept=".json">
+                </label>
+                <button onclick="resetData()" class="px-3 py-1.5 bg-rose-950/40 hover:bg-rose-900/50 text-rose-300 active:scale-95 text-xs font-semibold rounded-lg transition flex items-center gap-1.5 border border-rose-800/50">
+                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset
+                </button>
+            </div>
+
+            <!-- Mobile Action Menu Button -->
+            <div class="flex sm:hidden items-center space-x-2">
+                <button onclick="toggleMobileMenu()" class="p-2 bg-slate-800 rounded-lg text-slate-300 hover:text-white border border-slate-700 active:bg-slate-700">
+                    <i data-lucide="more-vertical" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Popup Quick Menu -->
+        <div id="mobileMenu" class="hidden sm:hidden border-t border-slate-800 bg-slate-900 px-4 py-3 space-y-2">
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="exportData(); toggleMobileMenu();" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-lg text-slate-200 flex flex-col items-center justify-center gap-1 border border-slate-700 active:bg-slate-700">
+                    <i data-lucide="download" class="w-4 h-4 text-indigo-400"></i> Export JSON
+                </button>
+                <label class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-lg text-slate-200 flex flex-col items-center justify-center gap-1 border border-slate-700 cursor-pointer active:bg-slate-700">
+                    <i data-lucide="upload" class="w-4 h-4 text-indigo-400"></i> Import JSON
+                    <input type="file" id="importFileMobile" onchange="importData(event); toggleMobileMenu();" class="hidden" accept=".json">
+                </label>
+                <button onclick="resetData(); toggleMobileMenu();" class="w-full py-2 bg-rose-950/40 hover:bg-rose-900/50 text-rose-300 text-xs font-semibold rounded-lg flex flex-col items-center justify-center gap-1 border border-rose-800/50 active:bg-rose-900">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4 text-rose-400"></i> Reset
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 flex-grow w-full space-y-4 sm:space-y-6">
+
+        <!-- Top Overview Stats (Mobile Swipe Carousel & Desktop Grid) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            <!-- Overall Progress -->
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 relative overflow-hidden flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Overall Target</span>
+                        <span class="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                            <i data-lucide="trophy" class="w-4 h-4"></i>
+                        </span>
+                    </div>
+                    <div class="flex items-baseline justify-between">
+                        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight" id="overallTotalText">0 / 27,691</h2>
+                        <span class="text-sm font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md" id="overallPercentage">0.0%</span>
+                    </div>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2 mt-3 overflow-hidden">
+                    <div id="overallProgressBar" class="bg-gradient-to-r from-indigo-500 to-indigo-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Subject Progress Cards Carousel Container for Mobile -->
+            <div class="grid grid-cols-3 sm:grid-cols-3 md:contents gap-2 sm:gap-4 col-span-1 sm:col-span-1 md:col-span-3">
+                <!-- Bio -->
+                <div class="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-slate-200/80 flex flex-col justify-between">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-600 flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Bio
+                        </span>
+                        <span class="text-[11px] font-bold text-slate-600" id="bioPerc">0%</span>
+                    </div>
+                    <div class="text-xs sm:text-base font-bold text-slate-800 truncate" id="bioCount">0 / 13.8k</div>
+                    <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
+                        <div id="bioProgressBar" class="bg-emerald-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Physics -->
+                <div class="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-slate-200/80 flex flex-col justify-between">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-sky-600 flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-sky-500"></span> Phy
+                        </span>
+                        <span class="text-[11px] font-bold text-slate-600" id="phyPerc">0%</span>
+                    </div>
+                    <div class="text-xs sm:text-base font-bold text-slate-800 truncate" id="phyCount">0 / 8.1k</div>
+                    <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
+                        <div id="phyProgressBar" class="bg-sky-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Chemistry -->
+                <div class="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-slate-200/80 flex flex-col justify-between">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-amber-600 flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-amber-500"></span> Chem
+                        </span>
+                        <span class="text-[11px] font-bold text-slate-600" id="chemPerc">0%</span>
+                    </div>
+                    <div class="text-xs sm:text-base font-bold text-slate-800 truncate" id="chemCount">0 / 5.7k</div>
+                    <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
+                        <div id="chemProgressBar" class="bg-amber-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sticky Controls & Filters Toolbar -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-3 sm:p-4 space-y-3 sticky top-16 z-20">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                
+                <!-- Search Input -->
+                <div class="relative flex-1">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                    <input type="text" id="searchInput" oninput="renderApp()" placeholder="Search chapters..." class="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                    <button id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <!-- Subject Tabs Carousel -->
+                <div class="flex items-center bg-slate-100/80 p-1 rounded-xl overflow-x-auto no-scrollbar gap-1 max-w-full">
+                    <button onclick="setFilter('All')" id="btn-All" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition whitespace-nowrap bg-white text-slate-900 shadow-sm">All</button>
+                    <button onclick="setFilter('Biology')" id="btn-Biology" class="px-3 py-1.5 text-xs font-semibold text-slate-600 rounded-lg transition whitespace-nowrap hover:text-slate-900">Biology</button>
+                    <button onclick="setFilter('Physics')" id="btn-Physics" class="px-3 py-1.5 text-xs font-semibold text-slate-600 rounded-lg transition whitespace-nowrap hover:text-slate-900">Physics</button>
+                    <button onclick="setFilter('Chemistry')" id="btn-Chemistry" class="px-3 py-1.5 text-xs font-semibold text-slate-600 rounded-lg transition whitespace-nowrap hover:text-slate-900">Chemistry</button>
+                </div>
+
+                <!-- Filter Status Dropdown -->
+                <div class="flex items-center gap-2">
+                    <select id="completionFilter" onchange="renderApp()" class="w-full sm:w-auto border border-slate-200 rounded-xl text-xs sm:text-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 font-medium text-slate-700">
+                        <option value="all">All Status</option>
+                        <option value="completed">Completed Only</option>
+                        <option value="pending">In Progress / Pending</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Desktop Table View (Hidden on mobile) -->
+        <div class="hidden md:block bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                            <th class="py-3.5 px-4">#</th>
+                            <th class="py-3.5 px-4">Subject</th>
+                            <th class="py-3.5 px-4 min-w-[200px]">Chapter Name</th>
+                            <th class="py-3.5 px-3 text-center">Absorb</th>
+                            <th class="py-3.5 px-3 text-center">0.5 Level</th>
+                            <th class="py-3.5 px-3 text-center">Rec. MCQs</th>
+                            <th class="py-3.5 px-3 text-center">Rec. PYQs</th>
+                            <th class="py-3.5 px-4 text-center">Progress</th>
+                            <th class="py-3.5 px-4 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-slate-100 text-sm">
+                        <!-- Desktop table rows injected here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Mobile Card View Container (Visible on mobile/tablet) -->
+        <div id="mobileCardsContainer" class="md:hidden space-y-3">
+            <!-- Cards injected dynamically -->
+        </div>
+
+        <!-- Empty state -->
+        <div id="emptyState" class="hidden py-16 text-center text-slate-400 bg-white rounded-2xl border border-slate-200/80">
+            <i data-lucide="file-search" class="w-12 h-12 mx-auto text-slate-300 mb-3"></i>
+            <p class="text-base font-semibold text-slate-700">No chapters found</p>
+            <p class="text-xs text-slate-400 mt-1">Try adjusting your filters or search query.</p>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 mt-8">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs font-medium text-slate-400">
+            NEET Preparation Progress Tracker &bull; 82 Chapters &bull; 27,691 Questions Target
+        </div>
+    </footer>
+
+    <!-- JS Logic -->
+    <script>
+        // Full Dataset extracted from PDF
+        const rawChapters = [
+            { id: 1, subject: "Biology", name: "The Living World", absorb: 0, level05: 70, mcq: 66, pyq: 16 },
+            { id: 2, subject: "Biology", name: "Biological Classification", absorb: 0, level05: 197, mcq: 250, pyq: 93 },
+            { id: 3, subject: "Biology", name: "Plant Kingdom", absorb: 0, level05: 156, mcq: 207, pyq: 75 },
+            { id: 4, subject: "Biology", name: "Animal Kingdom", absorb: 0, level05: 167, mcq: 245, pyq: 76 },
+            { id: 5, subject: "Biology", name: "Morphology of Flowering Plants", absorb: 0, level05: 226, mcq: 380, pyq: 99 },
+            { id: 6, subject: "Biology", name: "Anatomy of Flowering Plants", absorb: 0, level05: 130, mcq: 192, pyq: 51 },
+            { id: 7, subject: "Biology", name: "Structural Organisation in Animals", absorb: 0, level05: 258, mcq: 253, pyq: 52 },
+            { id: 8, subject: "Biology", name: "Cell-The Unit of Life", absorb: 0, level05: 149, mcq: 197, pyq: 117 },
+            { id: 9, subject: "Biology", name: "Biomolecules", absorb: 0, level05: 199, mcq: 230, pyq: 83 },
+            { id: 10, subject: "Biology", name: "Cell Cycle and Cell Division", absorb: 0, level05: 93, mcq: 92, pyq: 84 },
+            { id: 11, subject: "Biology", name: "Photosynthesis in Higher Plants", absorb: 0, level05: 175, mcq: 173, pyq: 67 },
+            { id: 12, subject: "Biology", name: "Respiration in Plants", absorb: 0, level05: 173, mcq: 132, pyq: 39 },
+            { id: 13, subject: "Biology", name: "Plant Growth and Development", absorb: 0, level05: 136, mcq: 70, pyq: 57 },
+            { id: 14, subject: "Biology", name: "Breathing and Exchange of Gases", absorb: 0, level05: 137, mcq: 144, pyq: 43 },
+            { id: 15, subject: "Biology", name: "Body Fluids and Circulation", absorb: 0, level05: 207, mcq: 171, pyq: 51 },
+            { id: 16, subject: "Biology", name: "Excretory Products and Their Elimination", absorb: 0, level05: 146, mcq: 139, pyq: 45 },
+            { id: 17, subject: "Biology", name: "Locomotion and Movement", absorb: 0, level05: 210, mcq: 164, pyq: 51 },
+            { id: 18, subject: "Biology", name: "Neural Control and Coordination", absorb: 0, level05: 110, mcq: 100, pyq: 25 },
+            { id: 19, subject: "Biology", name: "Chemical Coordination and Integration", absorb: 0, level05: 189, mcq: 173, pyq: 74 },
+            { id: 20, subject: "Biology", name: "Sexual Reproduction in Flowering Plants", absorb: 0, level05: 200, mcq: 227, pyq: 102 },
+            { id: 21, subject: "Biology", name: "Human Reproduction", absorb: 0, level05: 263, mcq: 235, pyq: 89 },
+            { id: 22, subject: "Biology", name: "Reproductive Health", absorb: 0, level05: 160, mcq: 107, pyq: 59 },
+            { id: 23, subject: "Biology", name: "Principles of Inheritance & Variation", absorb: 0, level05: 190, mcq: 237, pyq: 154 },
+            { id: 24, subject: "Biology", name: "Molecular Basis of Inheritance", absorb: 0, level05: 268, mcq: 272, pyq: 187 },
+            { id: 25, subject: "Biology", name: "Evolution", absorb: 0, level05: 222, mcq: 182, pyq: 86 },
+            { id: 26, subject: "Biology", name: "Human Health and Disease", absorb: 0, level05: 279, mcq: 190, pyq: 82 },
+            { id: 27, subject: "Biology", name: "Microbes in Human Welfare", absorb: 0, level05: 142, mcq: 112, pyq: 68 },
+            { id: 28, subject: "Biology", name: "Biotechnology: Principles and Processes", absorb: 0, level05: 178, mcq: 154, pyq: 107 },
+            { id: 29, subject: "Biology", name: "Biotechnology and its Applications", absorb: 0, level05: 126, mcq: 120, pyq: 76 },
+            { id: 30, subject: "Biology", name: "Organisms and Populations", absorb: 0, level05: 166, mcq: 123, pyq: 64 },
+            { id: 31, subject: "Biology", name: "Ecosystem", absorb: 0, level05: 117, mcq: 96, pyq: 52 },
+            { id: 32, subject: "Biology", name: "Biodiversity and Conservation", absorb: 0, level05: 123, mcq: 162, pyq: 78 },
+            { id: 33, subject: "Physics", name: "Units and Measurement", absorb: 30, level05: 37, mcq: 85, pyq: 59 },
+            { id: 34, subject: "Physics", name: "Motion in A Straight Line", absorb: 30, level05: 74, mcq: 141, pyq: 53 },
+            { id: 35, subject: "Physics", name: "Motion in A Plane", absorb: 30, level05: 73, mcq: 164, pyq: 46 },
+            { id: 36, subject: "Physics", name: "Laws of Motion", absorb: 30, level05: 78, mcq: 120, pyq: 77 },
+            { id: 37, subject: "Physics", name: "Work, Energy and Power", absorb: 30, level05: 87, mcq: 122, pyq: 82 },
+            { id: 38, subject: "Physics", name: "Systems of Particles and Rotational Motion", absorb: 30, level05: 94, mcq: 120, pyq: 93 },
+            { id: 39, subject: "Physics", name: "Gravitation", absorb: 30, level05: 72, mcq: 108, pyq: 72 },
+            { id: 40, subject: "Physics", name: "Mechanical Properties of Solids", absorb: 30, level05: 65, mcq: 84, pyq: 13 },
+            { id: 41, subject: "Physics", name: "Mechanical Properties of Fluids", absorb: 30, level05: 100, mcq: 122, pyq: 38 },
+            { id: 42, subject: "Physics", name: "Thermal Properties of Matter", absorb: 30, level05: 98, mcq: 96, pyq: 50 },
+            { id: 43, subject: "Physics", name: "Thermodynamics", absorb: 30, level05: 95, mcq: 120, pyq: 46 },
+            { id: 44, subject: "Physics", name: "Kinetic Theory of Gases", absorb: 30, level05: 75, mcq: 86, pyq: 34 },
+            { id: 45, subject: "Physics", name: "Oscillations", absorb: 30, level05: 100, mcq: 116, pyq: 64 },
+            { id: 46, subject: "Physics", name: "Waves", absorb: 30, level05: 100, mcq: 112, pyq: 53 },
+            { id: 47, subject: "Physics", name: "Electric Charges and Fields", absorb: 30, level05: 85, mcq: 89, pyq: 50 },
+            { id: 48, subject: "Physics", name: "Electrostatic Potential and Capacitance", absorb: 30, level05: 89, mcq: 130, pyq: 80 },
+            { id: 49, subject: "Physics", name: "Current Electricity", absorb: 30, level05: 92, mcq: 143, pyq: 130 },
+            { id: 50, subject: "Physics", name: "Moving Charges and Magnetism", absorb: 30, level05: 86, mcq: 115, pyq: 95 },
+            { id: 51, subject: "Physics", name: "Magnetism And Matter", absorb: 30, level05: 60, mcq: 80, pyq: 37 },
+            { id: 52, subject: "Physics", name: "Electromagnetic Induction", absorb: 30, level05: 83, mcq: 106, pyq: 48 },
+            { id: 53, subject: "Physics", name: "Alternating Current", absorb: 30, level05: 75, mcq: 113, pyq: 58 },
+            { id: 54, subject: "Physics", name: "Electromagnetic Waves", absorb: 30, level05: 74, mcq: 81, pyq: 50 },
+            { id: 55, subject: "Physics", name: "Ray Optics and Optical Instruments", absorb: 30, level05: 100, mcq: 127, pyq: 95 },
+            { id: 56, subject: "Physics", name: "Wave Optics", absorb: 30, level05: 73, mcq: 76, pyq: 42 },
+            { id: 57, subject: "Physics", name: "Dual Nature of Radiation and Matter", absorb: 30, level05: 85, mcq: 89, pyq: 86 },
+            { id: 58, subject: "Physics", name: "Atoms", absorb: 30, level05: 66, mcq: 87, pyq: 57 },
+            { id: 59, subject: "Physics", name: "Nuclei", absorb: 30, level05: 74, mcq: 73, pyq: 57 },
+            { id: 60, subject: "Physics", name: "Semiconductor Electronics", absorb: 30, level05: 88, mcq: 123, pyq: 104 },
+            { id: 61, subject: "Chemistry", name: "Some Basic Concepts Of Chemistry", absorb: 30, level05: 88, mcq: 118, pyq: 62 },
+            { id: 62, subject: "Chemistry", name: "Structure of Atom", absorb: 30, level05: 85, mcq: 140, pyq: 61 },
+            { id: 63, subject: "Chemistry", name: "Classification of Elements and Periodicity", absorb: 0, level05: 98, mcq: 122, pyq: 47 },
+            { id: 64, subject: "Chemistry", name: "Chemical Bonding and Molecular Structure", absorb: 0, level05: 99, mcq: 159, pyq: 124 },
+            { id: 65, subject: "Chemistry", name: "Thermodynamics", absorb: 30, level05: 93, mcq: 129, pyq: 83 },
+            { id: 66, subject: "Chemistry", name: "Equilibrium", absorb: 30, level05: 89, mcq: 192, pyq: 111 },
+            { id: 67, subject: "Chemistry", name: "Redox Reactions", absorb: 30, level05: 80, mcq: 86, pyq: 35 },
+            { id: 68, subject: "Chemistry", name: "Organic Chemistry-Some Basic Principles", absorb: 0, level05: 92, mcq: 171, pyq: 93 },
+            { id: 69, subject: "Chemistry", name: "Hydrocarbons", absorb: 0, level05: 89, mcq: 123, pyq: 80 },
+            { id: 70, subject: "Chemistry", name: "Solutions", absorb: 30, level05: 86, mcq: 134, pyq: 57 },
+            { id: 71, subject: "Chemistry", name: "Electrochemistry", absorb: 30, level05: 84, mcq: 117, pyq: 72 },
+            { id: 72, subject: "Chemistry", name: "Chemical Kinetics", absorb: 30, level05: 87, mcq: 128, pyq: 86 },
+            { id: 73, subject: "Chemistry", name: "The d and f Block Elements", absorb: 0, level05: 80, mcq: 121, pyq: 88 },
+            { id: 74, subject: "Chemistry", name: "Coordination Compounds", absorb: 0, level05: 82, mcq: 118, pyq: 94 },
+            { id: 75, subject: "Chemistry", name: "Haloalkanes and Haloarenes", absorb: 0, level05: 86, mcq: 123, pyq: 44 },
+            { id: 76, subject: "Chemistry", name: "Alcohols Phenols and Ethers", absorb: 0, level05: 77, mcq: 124, pyq: 63 },
+            { id: 77, subject: "Chemistry", name: "Aldehydes, Ketones and Carboxylic Acids", absorb: 0, level05: 89, mcq: 170, pyq: 94 },
+            { id: 78, subject: "Chemistry", name: "Amines", absorb: 0, level05: 81, mcq: 69, pyq: 56 },
+            { id: 79, subject: "Chemistry", name: "Biomolecules", absorb: 0, level05: 76, mcq: 73, pyq: 56 },
+            { id: 80, subject: "Chemistry", name: "The p-Block Elements (XI)", absorb: 0, level05: 42, mcq: 127, pyq: 35 },
+            { id: 81, subject: "Chemistry", name: "The p-Block Elements (XII)", absorb: 0, level05: 81, mcq: 139, pyq: 56 },
+            { id: 82, subject: "Chemistry", name: "Salt Analysis", absorb: 0, level05: 31, mcq: 198, pyq: 1 }
+        ];
+
+        // Global State
+        let userProgress = {}; // key: `chapterId_type`, val: number
+        let currentSubjectFilter = 'All';
+        let expandedMobileCards = {}; // Tracks expanded state for mobile cards
+
+        // Load progress from localStorage
+        function loadProgress() {
+            const saved = localStorage.getItem('neet_prep_progress');
+            if (saved) {
+                try {
+                    userProgress = JSON.parse(saved);
+                } catch(e) {
+                    console.error("Failed to parse progress storage", e);
+                    userProgress = {};
+                }
+            }
+        }
+
+        // Save progress to localStorage
+        function saveProgress() {
+            localStorage.setItem('neet_prep_progress', JSON.stringify(userProgress));
+            updateDashboard();
+        }
+
+        // Get value for a specific field
+        function getVal(id, key) {
+            return userProgress[`${id}_${key}`] || 0;
+        }
+
+        // Set value for a field
+        function setVal(id, key, val, maxVal) {
+            let num = parseInt(val) || 0;
+            if (num < 0) num = 0;
+            if (num > maxVal) num = maxVal;
+            userProgress[`${id}_${key}`] = num;
+            saveProgress();
+        }
+
+        // Increment or decrement counter easily on mobile touch
+        function stepVal(id, key, delta, maxVal) {
+            let current = getVal(id, key);
+            let nextVal = current + delta;
+            setVal(id, key, nextVal, maxVal);
+            renderApp();
+        }
+
+        // Quick set all fields of a chapter to max or zero
+        function toggleChapterComplete(id) {
+            const ch = rawChapters.find(item => item.id === id);
+            if (!ch) return;
+
+            const isDone = isChapterFullyDone(ch);
+            if (isDone) {
+                userProgress[`${id}_absorb`] = 0;
+                userProgress[`${id}_level05`] = 0;
+                userProgress[`${id}_mcq`] = 0;
+                userProgress[`${id}_pyq`] = 0;
+            } else {
+                userProgress[`${id}_absorb`] = ch.absorb;
+                userProgress[`${id}_level05`] = ch.level05;
+                userProgress[`${id}_mcq`] = ch.mcq;
+                userProgress[`${id}_pyq`] = ch.pyq;
+            }
+            saveProgress();
+            renderApp();
+        }
+
+        function isChapterFullyDone(ch) {
+            return (
+                getVal(ch.id, 'absorb') >= ch.absorb &&
+                getVal(ch.id, 'level05') >= ch.level05 &&
+                getVal(ch.id, 'mcq') >= ch.mcq &&
+                getVal(ch.id, 'pyq') >= ch.pyq
+            );
+        }
+
+        function getChapterDoneTotal(ch) {
+            return getVal(ch.id, 'absorb') + getVal(ch.id, 'level05') + getVal(ch.id, 'mcq') + getVal(ch.id, 'pyq');
+        }
+
+        function getChapterTargetTotal(ch) {
+            return ch.absorb + ch.level05 + ch.mcq + ch.pyq;
+        }
+
+        // Filter Buttons
+        function setFilter(subject) {
+            currentSubjectFilter = subject;
+            ['All', 'Biology', 'Physics', 'Chemistry'].forEach(s => {
+                const btn = document.getElementById(`btn-${s}`);
+                if (s === subject) {
+                    btn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg transition whitespace-nowrap bg-indigo-600 text-white shadow-sm";
+                } else {
+                    btn.className = "px-3 py-1.5 text-xs font-semibold text-slate-600 rounded-lg transition whitespace-nowrap hover:text-slate-900";
+                }
+            });
+            renderApp();
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            renderApp();
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        function toggleCardExpand(id) {
+            expandedMobileCards[id] = !expandedMobileCards[id];
+            renderApp();
+        }
+
+        // Update overall summary header stats
+        function updateDashboard() {
+            let grandTotalTarget = 27691;
+            let grandTotalDone = 0;
+
+            let bioTarget = 0, bioDone = 0;
+            let phyTarget = 0, phyDone = 0;
+            let chemTarget = 0, chemDone = 0;
+
+            rawChapters.forEach(ch => {
+                const done = getChapterDoneTotal(ch);
+                const target = getChapterTargetTotal(ch);
+
+                grandTotalDone += done;
+
+                if (ch.subject === 'Biology') {
+                    bioTarget += target;
+                    bioDone += done;
+                } else if (ch.subject === 'Physics') {
+                    phyTarget += target;
+                    phyDone += done;
+                } else if (ch.subject === 'Chemistry') {
+                    chemTarget += target;
+                    chemDone += done;
+                }
+            });
+
+            // Update UI elements
+            document.getElementById('overallTotalText').innerText = `${grandTotalDone.toLocaleString()} / ${grandTotalTarget.toLocaleString()}`;
+            const grandPerc = ((grandTotalDone / grandTotalTarget) * 100).toFixed(1);
+            document.getElementById('overallPercentage').innerText = `${grandPerc}%`;
+            document.getElementById('overallProgressBar').style.width = `${grandPerc}%`;
+
+            // Subject counters
+            document.getElementById('bioCount').innerText = `${bioDone.toLocaleString()} / ${(bioTarget/1000).toFixed(1)}k`;
+            const bioP = bioTarget ? ((bioDone / bioTarget) * 100).toFixed(1) : '0';
+            document.getElementById('bioPerc').innerText = `${bioP}%`;
+            document.getElementById('bioProgressBar').style.width = `${bioP}%`;
+
+            document.getElementById('phyCount').innerText = `${phyDone.toLocaleString()} / ${(phyTarget/1000).toFixed(1)}k`;
+            const phyP = phyTarget ? ((phyDone / phyTarget) * 100).toFixed(1) : '0';
+            document.getElementById('phyPerc').innerText = `${phyP}%`;
+            document.getElementById('phyProgressBar').style.width = `${phyP}%`;
+
+            document.getElementById('chemCount').innerText = `${chemDone.toLocaleString()} / ${(chemTarget/1000).toFixed(1)}k`;
+            const chemP = chemTarget ? ((chemDone / chemTarget) * 100).toFixed(1) : '0';
+            document.getElementById('chemPerc').innerText = `${chemP}%`;
+            document.getElementById('chemProgressBar').style.width = `${chemP}%`;
+        }
+
+        // Render Application UI
+        function renderApp() {
+            const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
+            const completionFilter = document.getElementById('completionFilter').value;
+            const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+            if (searchVal) {
+                clearSearchBtn.classList.remove('hidden');
+            } else {
+                clearSearchBtn.classList.add('hidden');
+            }
+
+            const filtered = rawChapters.filter(ch => {
+                if (currentSubjectFilter !== 'All' && ch.subject !== currentSubjectFilter) return false;
+                if (searchVal && !ch.name.toLowerCase().includes(searchVal)) return false;
+
+                const isDone = isChapterFullyDone(ch);
+                if (completionFilter === 'completed' && !isDone) return false;
+                if (completionFilter === 'pending' && isDone) return false;
+
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                document.getElementById('tableBody').innerHTML = '';
+                document.getElementById('mobileCardsContainer').innerHTML = '';
+                document.getElementById('emptyState').classList.remove('hidden');
+                return;
+            } else {
+                document.getElementById('emptyState').classList.add('hidden');
+            }
+
+            renderDesktopTable(filtered);
+            renderMobileCards(filtered);
+            lucide.createIcons();
+        }
+
+        // Desktop Table Renderer
+        function renderDesktopTable(filtered) {
+            const tableBody = document.getElementById('tableBody');
+            let html = '';
+
+            filtered.forEach(ch => {
+                const doneTotal = getChapterDoneTotal(ch);
+                const targetTotal = getChapterTargetTotal(ch);
+                const perc = Math.round((doneTotal / targetTotal) * 100);
+                const isDone = isChapterFullyDone(ch);
+
+                let badgeColor = 'bg-slate-100 text-slate-700';
+                if (ch.subject === 'Biology') badgeColor = 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+                if (ch.subject === 'Physics') badgeColor = 'bg-sky-50 text-sky-700 border border-sky-200';
+                if (ch.subject === 'Chemistry') badgeColor = 'bg-amber-50 text-amber-700 border border-amber-200';
+
+                html += `
+                    <tr class="hover:bg-slate-50/80 transition-colors ${isDone ? 'bg-emerald-50/30' : ''}">
+                        <td class="py-3 px-4 font-bold text-slate-400 text-xs">${ch.id}</td>
+                        <td class="py-3 px-4">
+                            <span class="inline-block px-2.5 py-1 text-[11px] font-bold rounded-lg ${badgeColor}">
+                                ${ch.subject}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 font-bold text-slate-800">
+                            ${ch.name}
+                        </td>
+                        
+                        <!-- Absorb -->
+                        <td class="py-3 px-2 text-center">
+                            ${ch.absorb === 0 ? '<span class="text-slate-300 text-xs">-</span>' : `
+                                <div class="inline-flex items-center space-x-1">
+                                    <input type="number" min="0" max="${ch.absorb}" value="${getVal(ch.id, 'absorb')}"
+                                        oninput="setVal(${ch.id}, 'absorb', this.value, ${ch.absorb}); renderApp();"
+                                        class="w-12 text-center border border-slate-200 bg-slate-50 focus:bg-white rounded-lg py-1 text-xs font-semibold focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                    <span class="text-xs text-slate-400 font-medium">/ ${ch.absorb}</span>
+                                </div>
+                            `}
+                        </td>
+
+                        <!-- 0.5 Level -->
+                        <td class="py-3 px-2 text-center">
+                            <div class="inline-flex items-center space-x-1">
+                                <input type="number" min="0" max="${ch.level05}" value="${getVal(ch.id, 'level05')}"
+                                    oninput="setVal(${ch.id}, 'level05', this.value, ${ch.level05}); renderApp();"
+                                    class="w-12 text-center border border-slate-200 bg-slate-50 focus:bg-white rounded-lg py-1 text-xs font-semibold focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                <span class="text-xs text-slate-400 font-medium">/ ${ch.level05}</span>
+                            </div>
+                        </td>
+
+                        <!-- Rec MCQ -->
+                        <td class="py-3 px-2 text-center">
+                            <div class="inline-flex items-center space-x-1">
+                                <input type="number" min="0" max="${ch.mcq}" value="${getVal(ch.id, 'mcq')}"
+                                    oninput="setVal(${ch.id}, 'mcq', this.value, ${ch.mcq}); renderApp();"
+                                    class="w-12 text-center border border-slate-200 bg-slate-50 focus:bg-white rounded-lg py-1 text-xs font-semibold focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                <span class="text-xs text-slate-400 font-medium">/ ${ch.mcq}</span>
+                            </div>
+                        </td>
+
+                        <!-- Rec PYQ -->
+                        <td class="py-3 px-2 text-center">
+                            <div class="inline-flex items-center space-x-1">
+                                <input type="number" min="0" max="${ch.pyq}" value="${getVal(ch.id, 'pyq')}"
+                                    oninput="setVal(${ch.id}, 'pyq', this.value, ${ch.pyq}); renderApp();"
+                                    class="w-12 text-center border border-slate-200 bg-slate-50 focus:bg-white rounded-lg py-1 text-xs font-semibold focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                <span class="text-xs text-slate-400 font-medium">/ ${ch.pyq}</span>
+                            </div>
+                        </td>
+
+                        <!-- Total / Progress -->
+                        <td class="py-3 px-4 text-center">
+                            <div class="flex flex-col items-center">
+                                <span class="text-xs font-bold text-slate-700 mb-1">${doneTotal} / ${targetTotal} (${perc}%)</span>
+                                <div class="w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                    <div class="bg-indigo-600 h-1.5 rounded-full" style="width: ${perc}%"></div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Quick Toggle -->
+                        <td class="py-3 px-4 text-center">
+                            <button onclick="toggleChapterComplete(${ch.id})" title="${isDone ? 'Mark as Incomplete' : 'Mark All Done'}"
+                                class="p-2 rounded-xl transition ${isDone ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/30' : 'bg-slate-100 text-slate-400 hover:text-slate-600 hover:bg-slate-200'}">
+                                <i data-lucide="${isDone ? 'check-circle-2' : 'circle'}" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tableBody.innerHTML = html;
+        }
+
+        // Touch-Friendly Mobile Card Renderer
+        function renderMobileCards(filtered) {
+            const mobileCardsContainer = document.getElementById('mobileCardsContainer');
+            let html = '';
+
+            filtered.forEach(ch => {
+                const doneTotal = getChapterDoneTotal(ch);
+                const targetTotal = getChapterTargetTotal(ch);
+                const perc = Math.round((doneTotal / targetTotal) * 100);
+                const isDone = isChapterFullyDone(ch);
+                const isExpanded = expandedMobileCards[ch.id];
+
+                let badgeColor = 'bg-slate-100 text-slate-700';
+                if (ch.subject === 'Biology') badgeColor = 'bg-emerald-50 text-emerald-700 border border-emerald-200/80';
+                if (ch.subject === 'Physics') badgeColor = 'bg-sky-50 text-sky-700 border border-sky-200/80';
+                if (ch.subject === 'Chemistry') badgeColor = 'bg-amber-50 text-amber-700 border border-amber-200/80';
+
+                html += `
+                    <div class="bg-white rounded-2xl p-3.5 shadow-sm border ${isDone ? 'border-emerald-300 bg-emerald-50/10' : 'border-slate-200/80'} space-y-3">
+                        <!-- Card Header -->
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] font-extrabold text-slate-400">#${ch.id}</span>
+                                    <span class="px-2 py-0.5 text-[10px] font-bold rounded-md ${badgeColor}">
+                                        ${ch.subject}
+                                    </span>
+                                </div>
+                                <h3 class="text-sm font-bold text-slate-800 leading-snug">${ch.name}</h3>
+                            </div>
+                            <!-- Complete Toggle -->
+                            <button onclick="toggleChapterComplete(${ch.id})" class="p-2 rounded-xl transition flex-shrink-0 ${isDone ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20' : 'bg-slate-100 text-slate-400 active:bg-slate-200'}">
+                                <i data-lucide="${isDone ? 'check-circle-2' : 'circle'}" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+
+                        <!-- Progress Bar & Quick Summary -->
+                        <div class="space-y-1.5 pt-1">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="font-semibold text-slate-500">Progress</span>
+                                <span class="font-bold text-slate-800">${doneTotal} / ${targetTotal} <span class="text-indigo-600 font-extrabold">(${perc}%)</span></span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                                <div class="bg-indigo-600 h-2 rounded-full transition-all duration-300" style="width: ${perc}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Expand / Collapse Inputs Button -->
+                        <button onclick="toggleCardExpand(${ch.id})" class="w-full py-2 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-semibold text-slate-600 flex items-center justify-center gap-1.5 border border-slate-200/60 transition active:bg-slate-200">
+                            <span>${isExpanded ? 'Hide Category Details' : 'Update Category Breakdown'}</span>
+                            <i data-lucide="${isExpanded ? 'chevron-up' : 'chevron-down'}" class="w-4 h-4 text-slate-400"></i>
+                        </button>
+
+                        <!-- Expandable Mobile Counter Inputs -->
+                        ${isExpanded ? `
+                            <div class="pt-2 border-t border-slate-100 space-y-2.5 animate-fadeIn">
+                                ${ch.absorb > 0 ? renderMobileCounter(ch.id, 'absorb', 'Absorb Solved', ch.absorb) : ''}
+                                ${renderMobileCounter(ch.id, 'level05', '0.5 Level', ch.level05)}
+                                ${renderMobileCounter(ch.id, 'mcq', 'Recommended MCQs', ch.mcq)}
+                                ${renderMobileCounter(ch.id, 'pyq', 'Recommended PYQs', ch.pyq)}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+
+            mobileCardsContainer.innerHTML = html;
+        }
+
+        // Render Touch Counter Row for Mobile Expandable View
+        function renderMobileCounter(chId, key, label, maxVal) {
+            const currentVal = getVal(chId, key);
+            return `
+                <div class="flex items-center justify-between bg-slate-50/80 p-2 rounded-xl border border-slate-200/60">
+                    <div>
+                        <div class="text-xs font-bold text-slate-700">${label}</div>
+                        <div class="text-[10px] text-slate-400 font-medium">${currentVal} of ${maxVal} questions</div>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <button onclick="stepVal(${chId}, '${key}', -10, ${maxVal})" class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-600 active:bg-slate-100 flex items-center justify-center font-bold text-xs shadow-xs">-10</button>
+                        <button onclick="stepVal(${chId}, '${key}', -1, ${maxVal})" class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-700 active:bg-slate-100 flex items-center justify-center font-bold text-sm shadow-xs">-</button>
+                        
+                        <input type="number" min="0" max="${maxVal}" value="${currentVal}"
+                            onchange="setVal(${chId}, '${key}', this.value, ${maxVal}); renderApp();"
+                            class="w-12 h-8 text-center bg-white border border-slate-200 rounded-lg text-xs font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        
+                        <button onclick="stepVal(${chId}, '${key}', 1, ${maxVal})" class="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-600 active:bg-indigo-100 flex items-center justify-center font-bold text-sm shadow-xs">+</button>
+                        <button onclick="stepVal(${chId}, '${key}', 10, ${maxVal})" class="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-600 active:bg-indigo-100 flex items-center justify-center font-bold text-xs shadow-xs">+10</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Export data to JSON file
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(userProgress));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", `NEET_Prep_Progress_${new Date().toISOString().slice(0,10)}.json`);
+            dlAnchorElem.click();
+        }
+
+        // Import data from JSON file
+        function importData(event) {
+            const fileReader = new FileReader();
+            fileReader.onload = function (e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (typeof imported === 'object') {
+                        userProgress = imported;
+                        saveProgress();
+                        renderApp();
+                        alert('Progress data imported successfully!');
+                    }
+                } catch(err) {
+                    alert('Invalid JSON file format.');
+                }
+            };
+            if (event.target.files.length > 0) {
+                fileReader.readAsText(event.target.files[0]);
+            }
+        }
+
+        // Reset all progress
+        function resetData() {
+            if (confirm("Are you sure you want to reset all tracked progress? This action cannot be undone.")) {
+                userProgress = {};
+                saveProgress();
+                renderApp();
+            }
+        }
+
+        // Init
+        window.onload = function() {
+            loadProgress();
+            updateDashboard();
+            renderApp();
+            lucide.createIcons();
+        };
+    </script>
+</body>
+</html>
